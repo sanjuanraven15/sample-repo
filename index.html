@@ -61,7 +61,7 @@ body {
     background: linear-gradient(rgba(135, 169, 107, 0.4), rgba(135, 169, 107, 0.4)), url('pic2.png');
     background-size: cover;
     background-position: center;
-    background-attachment: fixed;
+    background-attachment: fixed; /* Note: disabled on mobile via media query (iOS Safari bug) */
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -97,13 +97,14 @@ body {
     font-size: 5rem;
     margin: 0;
     text-shadow: 3px 3px 10px rgba(139, 69, 19, 0.5);
-    animation: fadeInUp 1.5s ease-out;
     background: linear-gradient(45deg, #FFF8DC, #FFD700, #FFFFE0, #F0E68C);
     background-size: 300% 300%;
     background-position: 0% 50%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    /* Fallback: if gradient text is unsupported, show white text */
+    color: #FFF8DC;
     animation: fadeInUp 1.5s ease-out, textShine 4s ease-in-out infinite;
 }
 
@@ -833,9 +834,13 @@ body {
 .hashtag-wrapper {
     min-height: 100px;
 }
-.hashtag {
-    font-size: 1.2rem;
-    font-weight: 300;
+/* Fix: removed duplicate .hashtag rule that was overriding font-size and font-weight */
+
+/* Fix: iOS Safari background-attachment: fixed workaround */
+@media (max-width: 768px) {
+    .header {
+        background-attachment: scroll;
+    }
 }
     </style>
   </head>
@@ -848,7 +853,7 @@ body {
       <h1 class="names">Kemuel and Raven</h1>
       <p class="subtitle">You're Invited to Celebrate Our Wedding</p>
       <div class="date">November 30, 2025</div>
-      <div class="header-hashtag">#APerfectNiteForKemuel&Raven</div>
+      <div class="header-hashtag">#APerfectNiteForKemuel&amp;Raven</div>
       <div class="scroll-indicator">
         <div style="font-size: 2rem;">↓</div>
         <div style="font-size: 0.9rem; margin-top: 0.5rem;">Scroll</div>
@@ -1182,7 +1187,7 @@ body {
         </div>
         <div class="hashtag-container">
           <div class="hashtag-wrapper">
-            <div class="hashtag">#APerfectNiteForKemuel&Raven</div>
+            <div class="hashtag">#APerfectNiteForKemuel&amp;Raven</div>
           </div>
         </div>
       </div>
@@ -1202,18 +1207,25 @@ body {
 
       // Create floating hearts
       const heartsContainer = document.getElementById('hearts');
-      setInterval(() => {
+      const heartInterval = setInterval(() => {
         const heart = document.createElement('div');
         heart.className = 'heart';
         heart.innerHTML = '💛';
         heart.style.left = Math.random() * 100 + '%';
-        heart.style.animationDuration = (Math.random() * 2 + 3) + 's';
+        const duration = (Math.random() * 2 + 3);
+        heart.style.animationDuration = duration + 's';
         heartsContainer.appendChild(heart);
         
+        // Fix: remove heart after animation fully completes (extra 1s buffer)
         setTimeout(() => {
           heart.remove();
-        }, 5000);
+        }, (duration + 1) * 1000);
       }, 300);
+
+      // Fix: clean up interval when page is hidden to avoid memory leak
+      document.addEventListener('visibilitychange', () => {
+        if (document.hidden) clearInterval(heartInterval);
+      });
     </script>
   </body>
 
